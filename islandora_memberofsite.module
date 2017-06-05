@@ -1,0 +1,102 @@
+<?php
+
+/**
+ * @file
+ * Primary hook implementations.
+ */
+
+// Permissions.
+define('ISLANDORA_MEMBEROFSITE_MANAGE', 'manage ismemberofsite');
+
+/**
+ * Implements hook_menu().
+ */
+function islandora_memberofsite_menu() {
+  $items = array(
+    'admin/islandora/tools/islandora_memberofsite' => array(
+      'title' => 'IsMemberOfSite Settings',
+      'description' => 'Change the available Sites for adding IsMemberOfSite tags to object models.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_memberofsite_admin_form'),
+      'access arguments' => array(ISLANDORA_MEMBEROFSITE_MANAGE),
+      'file' => 'includes/admin.form.inc',
+    ),
+    'islandora/object/%islandora_object/manage/collection/memberofsite/%/%/remove' => array(
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_memberofsite_memberofsite_remove',
+        2, 6, 7),
+      'type' => MENU_CALLBACK,
+      'file' => 'includes/memberofsite.form.inc',
+      'access arguments' => array(ISLANDORA_MEMBEROFSITE_MANAGE),
+    ),
+    'islandora/object/%islandora_object/manage/collection/memberofsite/add' => array(
+      'title' => 'Add isMemberOfSite to this Collection',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_memberofsite_memberofsite_add', 2),
+      'type' => MENU_LOCAL_ACTION,
+      'file' => 'includes/memberofsite.form.inc',
+      'access arguments' => array(ISLANDORA_MEMBEROFSITE_MANAGE),
+    ),
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_islandora_overview_object_alter().
+ *
+ * Shows the collection usage stats on the object overview tab if allowed.
+ */
+function islandora_memberofsite_islandora_overview_object_alter(
+  AbstractObject &$object, &$output) {
+  if (!user_access(ISLANDORA_MEMBEROFSITE_MANAGE)) {
+    return;
+  }
+  $rels_ext = $object['RELS-EXT'];
+  $obj_sites = $object->relationships->get(NULL, 'isMemberOfSite');
+  $rows = array();
+  foreach ($obj_sites as $obj_site) {
+    if (isset($obj_site['object']['value'])) {
+      $xml = htmlspecialchars('<isMemberOfSite xmlns="') . '<b>' . $obj_site['predicate']['namespace'] . '</b>' .
+             htmlspecialchars('" rdf:resource="') . '<b>' . $obj_site['object']['value'] . '</b>' .
+             htmlspecialchars('">');
+      $rows[] = array($xml,
+        l(t('Remove'), "islandora/object/{$object->id}/manage/collection/memberofsite/" . urlencode($obj_site['predicate']['namespace']) . "/" . urlencode($obj_site['object']['value']) . "/remove"),);
+    }
+  }
+  $header = array('Resource', 'OPERATIONS');
+  $attributes = array();
+  $is_collection_object = in_array('islandora:collectionCModel', $object->models);
+
+  // Add isMemberOfSite to this Collection.
+  $add_isMemberOfSite_link = array(
+    'element' => array(
+      '#link' => array(
+        'href' => "islandora/object/{$object->id}/manage/collection/memberofsite/add",
+        'title' => 'Add isMemberOfSite to this ' . (($is_collection_object) ? 'Collection' : 'Object'),
+      ),
+    ),
+  );
+
+  $output['islandora_memberofsite_sites'] = array(
+    '#type' => 'item',
+    '#title' => 'Member Of Site',
+    '#markup' => '<ul class="action-links">' .
+    theme_menu_local_action($add_isMemberOfSite_link) .
+    '</ul>' .
+    ((count($rows) > 0) ?
+      theme('table', array('header' => $header, 'rows' => $rows)) : ''),
+  );
+}
+
+/**
+ * Implements hook_permission().
+ */
+function islandora_memberofsite_permission() {
+  return array(
+    ISLANDORA_MEMBEROFSITE_MANAGE => array(
+      'title' => t('Manage isMemberOfSite relationships'),
+      'description' => t('Manage isMemberOfSite relationships for collection objects in the repository.'),
+    ),
+  );
+}

@@ -1,0 +1,14 @@
+<?php
+
+/**
+ * @file
+ * Install/uninstall hooks.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function islandora_memberofsite_uninstall() {
+  variable_del('islandora_memberofsite_namespace');
+  variable_del('islandora_memberofsite_sites');
+}
