@@ -156,10 +156,7 @@ function islandora_memberofsite_memberofsite_remove_submit($form, &$form_state) 
     foreach ($results as $child_object_result) {
       $child_object = isset($child_object_result['object']['value']) ? islandora_object_load($child_object_result['object']['value']) : NULL;
       if ($child_object) {
-        if ($child_object->relationships->remove($ns, 'isMemberOfSite', $form_state['values']['site'])) {
-          $child_object->relationships->add(variable_get('islandora_memberofsite_namespace'), 'isMemberOfSite', $form_state['values']['site']);
-        }
-        else {
+        if (!$child_object->relationships->remove($ns, 'isMemberOfSite', $form_state['values']['site'])) {
           $problem_pids[] = $child_object->id;
         }
       }
