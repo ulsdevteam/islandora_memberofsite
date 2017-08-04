@@ -26,8 +26,11 @@ function islandora_memberofsite_admin_form() {
     ),
     'sites' => array(
       '#type' => 'textarea',
-      '#title' => t('Sites'),
-      '#description' => t('Value to use for the rdf:resource attribute on IsMemberOfSite associations.  List possible site values (must match the "!link" value from those sites\' configurations.)',
+      '#title' => t('Sites PID values | Sites URL'),
+      '#description' => t('Be careful to have each line properly formatted with the pipe "|" character ' .
+              'separating the "Site PID value" from the "Site URL".  The <b>Site PID value</b> is used for ' .
+              'the rdf:resource attribute on IsMemberOfSite associations and must the "!link" value from ' .
+              'each site\'s configuration.  <b>Site URL</b> should be the full http address to root of the site.',
         array('!link' => l(t('Solr base filter'), '/admin/islandora/search/islandora_solr/settings'))),
       '#default_value' => variable_get('islandora_memberofsite_sites'),
     ),

@@ -22,7 +22,8 @@ function islandora_memberofsite_memberofsite_add($form, &$form_state, AbstractOb
     }
   }
   $sites_arr = explode("\r\n", $sites);
-  foreach ($sites_arr as $site) {
+  foreach ($sites_arr as $site_rdf_and_url) {
+    @list($site, $site_url) = explode("|", $site_rdf_and_url);
     if (($site) && (array_search($site, $existing_sites) === FALSE)) {
       $newsites[$site] = $site;
     }
