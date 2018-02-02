@@ -9,6 +9,8 @@
  * The add memberofsite form.
  */
 function islandora_memberofsite_memberofsite_add($form, &$form_state, AbstractObject $object) {
+  module_load_include('inc', 'islandora_memberofsite', 'includes/utilities');
+
   $sites = variable_get('islandora_memberofsite_sites');
 
   // Remove the sites that have been configured for this object already.
@@ -48,7 +50,7 @@ function islandora_memberofsite_memberofsite_add($form, &$form_state, AbstractOb
       '#value' => $object->id,
     ),
   );
-  $is_collection_object = in_array('islandora:collectionCModel', $object->models);
+  $is_collection_object = islandora_memberofsite_is_collection_object($object);
   if ($is_collection_object) {
     $form['also_add_children'] = array(
       '#type' => 'checkbox',
@@ -68,23 +70,29 @@ function islandora_memberofsite_memberofsite_add($form, &$form_state, AbstractOb
  * Submit handler for islandora_memberofsite_memberofsite_add.
  */
 function islandora_memberofsite_memberofsite_add_submit($form, &$form_state) {
-  $object = islandora_object_load($form_state['values']['object_id']);
-  $object->relationships->add(variable_get('islandora_memberofsite_namespace'), 'isMemberOfSite', $form_state['values']['site']);
-  drupal_set_message(t('The "isMemberOfSite" relationship has been added to "@object_id".', array('@object_id' => $form_state['values']['object_id'])));
+  module_load_include('inc', 'islandora_memberofsite', 'includes/utilities');
 
-  $is_collection_object = in_array('islandora:collectionCModel', $object->models);
-  if ($is_collection_object && isset($form_state['values']['also_add_children']) &&
-    $form_state['values']['also_add_children']) {
-    module_load_include('inc', 'islandora_basic_collection', 'include/utilities');
-    list($count, $results) = islandora_basic_collection_get_member_objects($object, 0, 9999, 'view');
-    foreach ($results as $child_object_result) {
-      $child_object = isset($child_object_result['object']['value']) ? islandora_object_load($child_object_result['object']['value']) : NULL;
-      if ($child_object) {
-        $child_object->relationships->add(variable_get('islandora_memberofsite_namespace'), 'isMemberOfSite', $form_state['values']['site']);
+  $ns = variable_get('islandora_memberofsite_namespace');
+  $object = islandora_object_load($form_state['values']['object_id']);
+
+  if (is_object($object)) {
+    islandora_memberofsite_add_relationship_if_not_exists($object, 'isMemberOfSite', $form_state['values']['site'], $ns);
+    drupal_set_message(t('The "isMemberOfSite" relationship has been added to "@object_id".', array('@object_id' => $form_state['values']['object_id'])));
+
+    $is_collection_object = islandora_memberofsite_is_collection_object($object);
+    if ($is_collection_object && isset($form_state['values']['also_add_children']) &&
+      $form_state['values']['also_add_children']) {
+      module_load_include('inc', 'islandora_basic_collection', 'include/utilities');
+      list($count, $results) = islandora_basic_collection_get_member_objects($object, 0, 100000, 'view');
+      foreach ($results as $child_object_result) {
+        $child_object = isset($child_object_result['object']['value']) ? islandora_object_load($child_object_result['object']['value']) : NULL;
+        if ($child_object) {
+          islandora_memberofsite_add_relationship_if_not_exists($child_object, 'isMemberOfSite', $form_state['values']['site'], $ns);
+        }
       }
+      drupal_set_message(t('The "isMemberOfSite" relationship has also been added for all @count child objects in this "@object_id" collection.',
+        array('@count' => $count, '@object_id' => $form_state['values']['object_id'])));
     }
-    drupal_set_message(t('The "isMemberOfSite" relationship has also been added for all @count child objects in this "@object_id" collection.',
-      array('@count' => $count, '@object_id' => $form_state['values']['object_id'])));
   }
 
   $form_state['redirect'] = "islandora/object/{$form_state['values']['object_id']}/manage/";
@@ -94,6 +102,8 @@ function islandora_memberofsite_memberofsite_add_submit($form, &$form_state) {
  * The remove memberofsite handler.
  */
 function islandora_memberofsite_memberofsite_remove($form, &$form_state, AbstractObject $object, $ns, $site) {
+  module_load_include('inc', 'islandora_memberofsite', 'includes/utilities');
+
   $form = array();
   $ns = urldecode($ns);
   $site = urldecode($site);
@@ -112,7 +122,7 @@ function islandora_memberofsite_memberofsite_remove($form, &$form_state, Abstrac
     ),
   );
 
-  $is_collection_object = in_array('islandora:collectionCModel', $object->models);
+  $is_collection_object = islandora_memberofsite_is_collection_object($object);
   if ($is_collection_object) {
     $form['also_remove_children'] = array(
       '#type' => 'checkbox',
@@ -135,6 +145,8 @@ function islandora_memberofsite_memberofsite_remove($form, &$form_state, Abstrac
  * Submit handler for islandora_memberofsite_memberofsite_remove.
  */
 function islandora_memberofsite_memberofsite_remove_submit($form, &$form_state) {
+  module_load_include('inc', 'islandora_memberofsite', 'includes/utilities');
+
   $ns = $form_state['values']['ns'];
   $site = $form_state['values']['site'];
   if (isset($form_state['values']['ns']) && isset($form_state['values']['object_id'])) {
@@ -148,11 +160,11 @@ function islandora_memberofsite_memberofsite_remove_submit($form, &$form_state) 
     }
   }
 
-  $is_collection_object = in_array('islandora:collectionCModel', $object->models);
+  $is_collection_object = islandora_memberofsite_is_collection_object($object);
   if ($is_collection_object && isset($form_state['values']['also_remove_children']) &&
     $form_state['values']['also_remove_children']) {
     module_load_include('inc', 'islandora_basic_collection', 'include/utilities');
-    list($count, $results) = islandora_basic_collection_get_member_objects($object, 0, 9999, 'view');
+    list($count, $results) = islandora_basic_collection_get_member_objects($object, 0, 100000, 'view');
     $problem_pids = TRUE;
     foreach ($results as $child_object_result) {
       $child_object = isset($child_object_result['object']['value']) ? islandora_object_load($child_object_result['object']['value']) : NULL;

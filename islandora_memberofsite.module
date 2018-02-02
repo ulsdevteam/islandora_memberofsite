@@ -49,26 +49,28 @@ function islandora_memberofsite_menu() {
  */
 function islandora_memberofsite_islandora_overview_object_alter(
   AbstractObject &$object, &$output) {
+  module_load_include('inc', 'islandora_memberofsite', 'includes/utilities');
   if (!user_access(ISLANDORA_MEMBEROFSITE_MANAGE)) {
     return;
   }
-  $rels_ext = $object['RELS-EXT'];
-  $obj_sites = $object->relationships->get(NULL, 'isMemberOfSite');
+  $obj_sites = $object->relationships->get(variable_get('islandora_memberofsite_namespace', NULL), NULL);
   $rows = array();
   foreach ($obj_sites as $obj_site) {
-    $site_url = islandora_memberofsite_get_site_url($obj_site);
-    if (isset($obj_site['object']['value'])) {
-      $xml = htmlspecialchars('<isMemberOfSite xmlns="') . $obj_site['predicate']['namespace'] .
-             htmlspecialchars('" rdf:resource="') . '<b>' . $obj_site['object']['value'] . '</b>' .
-             htmlspecialchars('">');
-      $rows[] = array($xml,
-        (($site_url) ? l($object->id, $site_url . '/islandora/object/' . $object->id) : 'n/a'),
-        l(t('Remove'), "islandora/object/{$object->id}/manage/collection/memberofsite/" . urlencode($obj_site['predicate']['namespace']) . "/" . urlencode($obj_site['object']['value']) . "/remove"),);
+    if (($obj_site['predicate']['value']) && ($obj_site['predicate']['value'] == 'isMemberOfSite')) {
+      $site_url = islandora_memberofsite_get_site_url($obj_site);
+      if (isset($obj_site['object']['value'])) {
+        $xml = htmlspecialchars('<isMemberOfSite xmlns="') . $obj_site['predicate']['namespace'] .
+               htmlspecialchars('" rdf:resource="') . '<b>' . $obj_site['object']['value'] . '</b>' .
+               htmlspecialchars('">');
+        $rows[] = array($xml,
+          (($site_url) ? l($object->id, $site_url . '/islandora/object/' . $object->id) : 'n/a'),
+          l(t('Remove'), "islandora/object/{$object->id}/manage/collection/memberofsite/" . urlencode($obj_site['predicate']['namespace']) . "/" . urlencode($obj_site['object']['value']) . "/remove"),);
+      }
     }
   }
   $header = array('Resource', 'Link', 'OPERATIONS');
   $attributes = array();
-  $is_collection_object = in_array('islandora:collectionCModel', $object->models);
+  $is_collection_object = islandora_memberofsite_is_collection_object($object);
 
   // Add isMemberOfSite to this Collection.
   $add_isMemberOfSite_link = array(
@@ -101,24 +103,4 @@ function islandora_memberofsite_permission() {
       'description' => t('Manage isMemberOfSite relationships for collection objects in the repository.'),
     ),
   );
-}
-
-/**
- * This will use the value in $site_rdf to find the matching site url from the 
- */
-function islandora_memberofsite_get_site_url($site_rdf) {
-  $site_url = '';
-  $rdf = (isset($site_rdf['object']) && isset($site_rdf['object']['value'])) ? $site_rdf['object']['value'] : NULL;
-  if ($rdf) {
-    $sites = variable_get('islandora_memberofsite_sites');
-    $sites_arr = explode("\r\n", $sites);
-    foreach ($sites_arr as $site_rdf_and_url) {
-      if (!$site_url) {
-        if (strstr($site_rdf_and_url, $rdf)) {
-          @list($site, $site_url) = explode("|", $site_rdf_and_url);
-        }
-      }
-    }
-  }
-  return $site_url;
 }
