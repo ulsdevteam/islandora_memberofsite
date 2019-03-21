@@ -49,26 +49,32 @@ function islandora_memberofsite_menu() {
  */
 function islandora_memberofsite_islandora_overview_object_alter(
   AbstractObject &$object, &$output) {
+  // To map the isMemberOfSite resource value to the underlying public-facing
+  // islandora site.
+  $site_mappings = array(
+    'pitt:site.uls-digital-collections' => 'Digital Collections',
+    'pitt:site.documenting-pitt' => 'Documenting Pitt',
+    'pitt:site.historic-pittsburgh' => 'Historic Pittsburgh',
+  );
   module_load_include('inc', 'islandora_memberofsite', 'includes/utilities');
   if (!user_access(ISLANDORA_MEMBEROFSITE_MANAGE)) {
     return;
   }
   $obj_sites = $object->relationships->get(variable_get('islandora_memberofsite_namespace', NULL), NULL);
   $rows = array();
+  islandora_memberofsite_fix_relationships($object, $obj_sites);
   foreach ($obj_sites as $obj_site) {
     if (($obj_site['predicate']['value']) && ($obj_site['predicate']['value'] == 'isMemberOfSite')) {
       $site_url = islandora_memberofsite_get_site_url($obj_site);
       if (isset($obj_site['object']['value'])) {
-        $xml = htmlspecialchars('<isMemberOfSite xmlns="') . $obj_site['predicate']['namespace'] .
-               htmlspecialchars('" rdf:resource="') . '<b>' . $obj_site['object']['value'] . '</b>' .
-               htmlspecialchars('">');
-        $rows[] = array($xml,
+        $site_text = '<b>' . $site_mappings[$obj_site['object']['value']] . '</b>';
+        $rows[] = array($site_text,
           (($site_url) ? l($object->id, $site_url . '/islandora/object/' . $object->id) : 'n/a'),
           l(t('Remove'), "islandora/object/{$object->id}/manage/collection/memberofsite/" . urlencode($obj_site['predicate']['namespace']) . "/" . urlencode($obj_site['object']['value']) . "/remove"),);
       }
     }
   }
-  $header = array('Resource', 'Link', 'OPERATIONS');
+  $header = array('Site', 'Link', 'OPERATIONS');
   $attributes = array();
   $is_collection_object = islandora_memberofsite_is_collection_object($object);
 
