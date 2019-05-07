@@ -66,7 +66,7 @@ function islandora_memberofsite_islandora_overview_object_alter(
   foreach ($obj_sites as $obj_site) {
     if (($obj_site['predicate']['value']) && ($obj_site['predicate']['value'] == 'isMemberOfSite')) {
       $site_url = islandora_memberofsite_get_site_url($obj_site);
-      if (isset($obj_site['object']['value'])) {
+      if (array_key_exists($obj_site['object']['value'], $site_mappings) && isset($obj_site['object']['value'])) {
         $site_text = '<b>' . $site_mappings[$obj_site['object']['value']] . '</b>';
         $rows[] = array($site_text,
           (($site_url) ? l($object->id, $site_url . '/islandora/object/' . $object->id) : 'n/a'),
