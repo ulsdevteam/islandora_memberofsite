@@ -55,6 +55,7 @@ function islandora_memberofsite_islandora_overview_object_alter(
     'pitt:site.uls-digital-collections' => 'Digital Collections',
     'pitt:site.documenting-pitt' => 'Documenting Pitt',
     'pitt:site.historic-pittsburgh' => 'Historic Pittsburgh',
+    'pitt:site.american-music' => 'American Music',
   );
   module_load_include('inc', 'islandora_memberofsite', 'includes/utilities');
   if (!user_access(ISLANDORA_MEMBEROFSITE_MANAGE)) {
