@@ -1,5 +1,5 @@
 name = Islandora IsMemberOfSite
-description = To manage the IsMemberOfSite relationships for Islanroda objects and collections
+description = To manage the IsMemberOfSite relationships for Islandora objects and collections
 package = Islandora Tools
 version = 7.x-1.6
 core = 7.x

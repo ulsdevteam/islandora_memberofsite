@@ -11,7 +11,7 @@
 function islandora_memberofsite_memberofsite_add($form, &$form_state, AbstractObject $object) {
   module_load_include('inc', 'islandora_memberofsite', 'includes/utilities');
 
-  $sites = variable_get('islandora_memberofsite_sites');
+  $sites = explode("\r\n", variable_get('islandora_memberofsite_sites'));
 
   // Remove the sites that have been configured for this object already.
   $obj_sites = $object->relationships->get(NULL, 'isMemberOfSite');
@@ -23,10 +23,8 @@ function islandora_memberofsite_memberofsite_add($form, &$form_state, AbstractOb
       }
     }
   }
-  $sites_arr = explode("\r\n", $sites);
-  foreach ($sites_arr as $site_rdf_and_url) {
-    @list($site, $site_url) = explode("|", $site_rdf_and_url);
-    if (($site) && (array_search($site, $existing_sites) === FALSE)) {
+  foreach ($sites as $site) {
+    if (array_search($site, $existing_sites) === FALSE) {
       $newsites[$site] = $site;
     }
   }

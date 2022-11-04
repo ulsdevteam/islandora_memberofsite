@@ -10,5 +10,6 @@
  */
 function islandora_memberofsite_uninstall() {
   variable_del('islandora_memberofsite_namespace');
+  variable_del('islandora_memberofsite_site_model');
   variable_del('islandora_memberofsite_sites');
 }

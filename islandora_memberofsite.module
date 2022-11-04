@@ -49,30 +49,23 @@ function islandora_memberofsite_menu() {
  */
 function islandora_memberofsite_islandora_overview_object_alter(
   AbstractObject &$object, &$output) {
-  // To map the isMemberOfSite resource value to the underlying public-facing
-  // islandora site.
-  $site_mappings = array(
-    'pitt:site.uls-digital-collections' => 'Digital Collections',
-    'pitt:site.documenting-pitt' => 'Documenting Pitt',
-    'pitt:site.historic-pittsburgh' => 'Historic Pittsburgh',
-    'pitt:site.american-music' => 'American Music',
-  );
   module_load_include('inc', 'islandora_memberofsite', 'includes/utilities');
   if (!user_access(ISLANDORA_MEMBEROFSITE_MANAGE)) {
     return;
   }
-  $obj_sites = $object->relationships->get(variable_get('islandora_memberofsite_namespace', NULL), NULL);
+  $sites = islandora_memberofsite_get_sites();    
+  $obj_sites = $object->relationships->get(NULL, 'isMemberOfSite');
   $rows = array();
   islandora_memberofsite_fix_relationships($object, $obj_sites);
   foreach ($obj_sites as $obj_site) {
-    if (($obj_site['predicate']['value']) && ($obj_site['predicate']['value'] == 'isMemberOfSite')) {
-      $site_url = islandora_memberofsite_get_site_url($obj_site);
-      if (array_key_exists($obj_site['object']['value'], $site_mappings) && isset($obj_site['object']['value'])) {
-        $site_text = '<b>' . $site_mappings[$obj_site['object']['value']] . '</b>';
-        $rows[] = array($site_text,
-          (($site_url) ? l($object->id, $site_url . '/islandora/object/' . $object->id) : 'n/a'),
-          l(t('Remove'), "islandora/object/{$object->id}/manage/collection/memberofsite/" . urlencode($obj_site['predicate']['namespace']) . "/" . urlencode($obj_site['object']['value']) . "/remove"),);
-      }
+    $site_pid = $obj_site['object']['value'];
+    if (array_key_exists($site_pid, $sites)) {
+      $site_text = '<b>' . $sites[$site_pid]['label'] . '</b>';
+      $rows[] = array($site_text,
+        // TODO: determine if the url can be pulled from solr/sparql and if its necessary 
+        // (($site_url) ? l($object->id, $site_url . '/islandora/object/' . $object->id) : 'n/a'),
+        'n/a',
+        l(t('Remove'), "islandora/object/{$object->id}/manage/collection/memberofsite/" . urlencode($obj_site['predicate']['namespace']) . "/" . urlencode($obj_site['object']['value']) . "/remove"),);
     }
   }
   $header = array('Site', 'Link', 'OPERATIONS');
