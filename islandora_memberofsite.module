@@ -61,14 +61,12 @@ function islandora_memberofsite_islandora_overview_object_alter(
     $site_pid = $obj_site['object']['value'];
     if (array_key_exists($site_pid, $sites)) {
       $site_text = '<b>' . $sites[$site_pid]['label'] . '</b>';
-      $rows[] = array($site_text,
-        // TODO: determine if the url can be pulled from solr/sparql and if its necessary 
-        // (($site_url) ? l($object->id, $site_url . '/islandora/object/' . $object->id) : 'n/a'),
-        'n/a',
+      $rows[] = array(
+        $site_text,
         l(t('Remove'), "islandora/object/{$object->id}/manage/collection/memberofsite/" . urlencode($obj_site['predicate']['namespace']) . "/" . urlencode($obj_site['object']['value']) . "/remove"),);
     }
   }
-  $header = array('Site', 'Link', 'OPERATIONS');
+  $header = array('Site', 'OPERATIONS');
   $attributes = array();
   $is_collection_object = islandora_memberofsite_is_collection_object($object);
 
