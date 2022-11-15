@@ -114,12 +114,12 @@ function islandora_memberofsite_get_sites()
         ?pid <fedora-model:label> ?label;
         <fedora-model:hasModel> <info:fedora/$site_model>
       }
-    EOQ;
+EOQ;
     foreach ($repository->ri->sparqlQuery($sparql) as $result) {
-      $sites[$result['pid']['value']] = [
+      $sites[$result['pid']['value']] = array(
         'label' => $result['label']['value'],
         'pid' => $result['pid']['value'],
-      ];
+      );
     }
   }
   return $sites;
