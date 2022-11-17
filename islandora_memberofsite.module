@@ -122,13 +122,8 @@ function islandora_memberofsite_islandora_object_access($op, $object, $user) {
   $page_rels = $object->relationships->get(NULL, 'isPageOf');
   foreach ($page_rels as $page_rel) {
     $page_owner = $object->repository->getObject($page_rel['object']['value']);
-    $page_owner_sites = $page_owner->relationships->get(NULL, 'isMemberOfSite');
-    foreach ($sites as $site_pid) {
-      foreach ($page_owner_sites as $obj_site) {
-        if ($obj_site['object']['value'] == $site_pid) {
-          return true;
-        }
-      }
+    if (islandora_memberofsite_islandora_object_access($op, $page_owner, $user)) {
+      return true;
     }
   }
   return false;
