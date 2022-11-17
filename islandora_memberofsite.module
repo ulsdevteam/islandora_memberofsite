@@ -108,6 +108,9 @@ function islandora_memberofsite_permission() {
  */
 function islandora_memberofsite_islandora_object_access($op, $object, $user) {
   $sites = explode("\r\n", variable_get('islandora_memberofsite_sites'));
+  if(count($sites) == 0) {
+    return true;
+  }
   $obj_sites = $object->relationships->get(NULL, 'isMemberOfSite');
   foreach ($sites as $site_pid) {
     foreach ($obj_sites as $obj_site) {
