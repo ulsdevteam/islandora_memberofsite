@@ -11,7 +11,7 @@
 function islandora_memberofsite_memberofsite_add($form, &$form_state, AbstractObject $object) {
   module_load_include('inc', 'islandora_memberofsite', 'includes/utilities');
 
-  $sites = explode("\r\n", variable_get('islandora_memberofsite_sites'));
+  $sites = variable_get('islandora_memberofsite_sites');
 
   // Remove the sites that have been configured for this object already.
   $obj_sites = $object->relationships->get(NULL, 'isMemberOfSite');

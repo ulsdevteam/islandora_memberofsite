@@ -107,7 +107,7 @@ function islandora_memberofsite_permission() {
  * Implements hook_islandora_object_access.
  */
 function islandora_memberofsite_islandora_object_access($op, $object, $user) {
-  $sites = explode("\r\n", variable_get('islandora_memberofsite_sites'));
+  $sites = variable_get('islandora_memberofsite_sites');
   if(count($sites) == 0) {
     return true;
   }

@@ -17,8 +17,9 @@
  */
 function islandora_memberofsite_admin_form($form, &$form_state) {
   module_load_include('inc', 'islandora_memberofsite', 'includes/utilities');
-  $all_sites = islandora_memberofsite_get_sites($form_state['values']['site_model']);
-  $selected_sites = explode("\r\n", variable_get('islandora_memberofsite_sites'));
+  // check the form state to see if this is being reloaded by ajax
+  $all_sites = islandora_memberofsite_get_sites(array_key_exists('values', $form_state) ? $form_state['values']['site_model'] : null);
+  $selected_sites = variable_get('islandora_memberofsite_sites');
   $default_values = array();
   foreach ($all_sites as $pid => $site) {
     $default_values[$pid] = in_array($pid, $selected_sites);
@@ -84,7 +85,7 @@ function islandora_memberofsite_admin_form_submit(array $form, array &$form_stat
     case 'edit-submit':
       variable_set('islandora_memberofsite_namespace', $form_state['values']['namespace']);
       variable_set('islandora_memberofsite_site_model', $form_state['values']['site_model']);
-      variable_set('islandora_memberofsite_sites', implode("\r\n", array_filter($form_state['values']['sites'])));
+      variable_set('islandora_memberofsite_sites', array_filter($form_state['values']['sites']));
       break;
 
     case 'edit-reset':
