@@ -45,7 +45,8 @@ function islandora_memberofsite_admin_form($form, &$form_state) {
     'sites_desc' => array(
       '#type' => 'item',
       '#title' => t('Site PIDs'),
-      '#description' => t('The <b>Site PID value</b> is used for the rdf:resource attribute on IsMemberOfSite associations.'),
+      '#description' => t('The <b>Site PID value</b> is used for the rdf:resource attribute on IsMemberOfSite associations. ' .
+        'When sites are selected here, objects will only be accessible if they are a member of one of the selected sites.'),
     ),
     'sites' => array(
       '#prefix' => '<div id="memberofsite-sites">',
