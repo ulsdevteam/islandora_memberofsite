@@ -86,11 +86,14 @@ function islandora_memberofsite_fix_relationships($islandora_object, $relationsh
 
 /**
  * Gets all sites, based on the site model specified in the config.
+ * Can also be used with a passed-in site model, for use with AJAX in the config form.
  * Returns an array keyed by the pid of each site, with each value being an array with 'pid' and 'label' keys.
  */
-function islandora_memberofsite_get_sites()
+function islandora_memberofsite_get_sites($site_model = null)
 {
-  $site_model = variable_get('islandora_memberofsite_site_model');
+  if (is_null($site_model)) {
+    $site_model = variable_get('islandora_memberofsite_site_model');
+  }
   $sites = array();
   if (module_exists('islandora_solr')) {
     module_load_include('inc', 'islandora_solr', 'includes/utilities');

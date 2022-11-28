@@ -15,7 +15,14 @@
  * @return array
  *   The Drupal form definition.
  */
-function islandora_memberofsite_admin_form() {
+function islandora_memberofsite_admin_form($form, &$form_state) {
+  module_load_include('inc', 'islandora_memberofsite', 'includes/utilities');
+  $all_sites = islandora_memberofsite_get_sites($form_state['values']['site_model']);
+  $selected_sites = explode("\r\n", variable_get('islandora_memberofsite_sites'));
+  $default_values = array();
+  foreach ($all_sites as $pid => $site) {
+    $default_values[$pid] = in_array($pid, $selected_sites);
+  }
   $form = array(
     'namespace' => array(
       '#type' => 'textfield',
@@ -30,15 +37,24 @@ function islandora_memberofsite_admin_form() {
       '#description' => t('PID of the CModel representing a site.'),
       '#default_value' => variable_get('islandora_memberofsite_site_model'),
       '#size' => 100,
+      '#ajax' => array(
+        'wrapper' => 'memberofsite-sites',
+        'callback' => 'islandora_memberofsite_sites_div',
+      )
+    ),
+    'sites_desc' => array(
+      '#type' => 'item',
+      '#title' => t('Site PIDs'),
+      '#description' => t('The <b>Site PID value</b> is used for the rdf:resource attribute on IsMemberOfSite associations.'),
     ),
     'sites' => array(
-      '#type' => 'textarea',
-      '#title' => t('Site PIDs'),
-      '#description' => t('The <b>Site PID value</b> is used for ' .
-              'the rdf:resource attribute on IsMemberOfSite associations and must the "!link" value from ' .
-              'each site\'s configuration.  One PID per line.',
-        array('!link' => l(t('Solr base filter'), '/admin/islandora/search/islandora_solr/settings'))),
-      '#default_value' => variable_get('islandora_memberofsite_sites'),
+      '#prefix' => '<div id="memberofsite-sites">',
+      '#suffix' => '</div>',
+      '#type' => 'tableselect',
+      '#header' => array('pid' => t('PID'), 'label' => t('Name')),
+      '#options' => $all_sites,
+      '#default_value' => $default_values,
+      '#empty' => t('Enter a site CModel above.')
     ),
     'submit' => array(
       '#type' => 'submit',
@@ -67,7 +83,7 @@ function islandora_memberofsite_admin_form_submit(array $form, array &$form_stat
     case 'edit-submit':
       variable_set('islandora_memberofsite_namespace', $form_state['values']['namespace']);
       variable_set('islandora_memberofsite_site_model', $form_state['values']['site_model']);
-      variable_set('islandora_memberofsite_sites', $form_state['values']['sites']);
+      variable_set('islandora_memberofsite_sites', implode("\r\n", array_filter($form_state['values']['sites'])));
       break;
 
     case 'edit-reset':
@@ -76,4 +92,11 @@ function islandora_memberofsite_admin_form_submit(array $form, array &$form_stat
       variable_del('islandora_memberofsite_sites');
       break;
   }
+}
+
+/**
+ * Get the element to render on an ajax event
+ */
+function islandora_memberofsite_sites_div($form, $form_state) {
+  return $form['sites'];
 }
