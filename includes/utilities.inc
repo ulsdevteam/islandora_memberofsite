@@ -63,6 +63,8 @@ function islandora_memberofsite_fix_relationships($islandora_object, $relationsh
     }
   }
 
+  if (is_null(variable_get('islandora_memberofsite_site_model'))) { return; }
+
   $all_sites = islandora_memberofsite_get_sites();
   foreach ($sites as $site) {
     if (!array_key_exists($site, $all_sites)) {
