@@ -1,7 +1,7 @@
 name = Islandora IsMemberOfSite
 description = To manage the IsMemberOfSite relationships for Islandora objects and collections
 package = Islandora Tools
-version = 7.x-1.6
+version = 7.x-1.13
 core = 7.x
 dependencies[] = islandora
 dependencies[] = islandora_basic_collection
