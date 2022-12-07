@@ -10,5 +10,16 @@
  */
 function islandora_memberofsite_uninstall() {
   variable_del('islandora_memberofsite_namespace');
+  variable_del('islandora_memberofsite_site_model');
   variable_del('islandora_memberofsite_sites');
+}
+
+/**
+ * Implements hook_update_N for 7.x-1.13
+ */
+function islandora_memberofsite_update_7113() {
+  $old_sites = variable_get('islandora_memberofsite_sites');
+  if (is_null($old_sites) || is_array($old_sites)) { return; }
+  $new_sites = array_map(function ($site) { return explode('|', $site)[0]; }, explode("\r\n", $old_sites));
+  variable_set('islandora_memberofsite_sites', $new_sites);
 }

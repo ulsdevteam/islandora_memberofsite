@@ -15,7 +15,15 @@
  * @return array
  *   The Drupal form definition.
  */
-function islandora_memberofsite_admin_form() {
+function islandora_memberofsite_admin_form($form, &$form_state) {
+  module_load_include('inc', 'islandora_memberofsite', 'includes/utilities');
+  // check the form state to see if this is being reloaded by ajax
+  $all_sites = islandora_memberofsite_get_sites(array_key_exists('values', $form_state) ? $form_state['values']['site_model'] : null);
+  $selected_sites = variable_get('islandora_memberofsite_sites');
+  $default_values = array();
+  foreach ($all_sites as $pid => $site) {
+    $default_values[$pid] = in_array($pid, $selected_sites);
+  }
   $form = array(
     'namespace' => array(
       '#type' => 'textfield',
@@ -24,15 +32,31 @@ function islandora_memberofsite_admin_form() {
       '#default_value' => variable_get('islandora_memberofsite_namespace', 'http://digital.library.pitt.edu/ontology/relations#'),
       '#size' => 100,
     ),
+    'site_model' => array(
+      '#type' => 'textfield',
+      '#title' => t('Site Content Model'),
+      '#description' => t('PID of the CModel representing a site.'),
+      '#default_value' => variable_get('islandora_memberofsite_site_model'),
+      '#size' => 100,
+      '#ajax' => array(
+        'wrapper' => 'memberofsite-sites',
+        'callback' => 'islandora_memberofsite_sites_div',
+      )
+    ),
+    'sites_desc' => array(
+      '#type' => 'item',
+      '#title' => t('Site PIDs'),
+      '#description' => t('The <b>Site PID value</b> is used for the rdf:resource attribute on IsMemberOfSite associations. ' .
+        'When sites are selected here, objects will only be accessible if they are a member of one of the selected sites.'),
+    ),
     'sites' => array(
-      '#type' => 'textarea',
-      '#title' => t('Sites PID values | Sites URL'),
-      '#description' => t('Be careful to have each line properly formatted with the pipe "|" character ' .
-              'separating the "Site PID value" from the "Site URL".  The <b>Site PID value</b> is used for ' .
-              'the rdf:resource attribute on IsMemberOfSite associations and must the "!link" value from ' .
-              'each site\'s configuration.  <b>Site URL</b> should be the full http address to root of the site.',
-        array('!link' => l(t('Solr base filter'), '/admin/islandora/search/islandora_solr/settings'))),
-      '#default_value' => variable_get('islandora_memberofsite_sites'),
+      '#prefix' => '<div id="memberofsite-sites">',
+      '#suffix' => '</div>',
+      '#type' => 'tableselect',
+      '#header' => array('pid' => t('PID'), 'label' => t('Name')),
+      '#options' => $all_sites,
+      '#default_value' => $default_values,
+      '#empty' => t('Enter a site CModel above.')
     ),
     'submit' => array(
       '#type' => 'submit',
@@ -60,12 +84,21 @@ function islandora_memberofsite_admin_form_submit(array $form, array &$form_stat
   switch ($id) {
     case 'edit-submit':
       variable_set('islandora_memberofsite_namespace', $form_state['values']['namespace']);
-      variable_set('islandora_memberofsite_sites', $form_state['values']['sites']);
+      variable_set('islandora_memberofsite_site_model', $form_state['values']['site_model']);
+      variable_set('islandora_memberofsite_sites', array_filter($form_state['values']['sites']));
       break;
 
     case 'edit-reset':
       variable_del('islandora_memberofsite_namespace');
+      variable_del('islandora_memberofsite_site_model');
       variable_del('islandora_memberofsite_sites');
       break;
   }
+}
+
+/**
+ * Get the element to render on an ajax event
+ */
+function islandora_memberofsite_sites_div($form, $form_state) {
+  return $form['sites'];
 }
