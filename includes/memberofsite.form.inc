@@ -23,6 +23,9 @@ function islandora_memberofsite_memberofsite_add($form, &$form_state, AbstractOb
       }
     }
   }
+  if (count($sites) == 0) {
+    $sites = array_keys(islandora_memberofsite_get_sites());
+  }
   foreach ($sites as $site) {
     if (array_search($site, $existing_sites) === FALSE) {
       $newsites[$site] = $site;
