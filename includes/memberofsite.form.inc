@@ -32,8 +32,7 @@ function islandora_memberofsite_memberofsite_add($form, &$form_state, AbstractOb
     }
   }
   if (count($newsites) < 1) {
-    drupal_set_message('This object is already associated with all possible site values ' .
-            'or no sites have been configured for the isMemberOfSite module. ' .
+    drupal_set_message('This object is already associated with all possible site values. ' .
             l('Change the available Sites for adding IsMemberOfSite tags to object models',
               'admin/islandora/tools/islandora_memberofsite'));
     drupal_goto("islandora/object/{$object->id}/manage/");
